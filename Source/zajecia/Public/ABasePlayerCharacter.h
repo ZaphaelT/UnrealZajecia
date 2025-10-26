@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "ABaseCharacter.h"
 #include "InputMappingContext.h"
+#include "InputAction.h"
+#include "InputActionValue.h"
 #include "ABasePlayerCharacter.generated.h"
 
 /**
@@ -29,4 +31,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
 	UInputAction* AttackAction;
 
+	// Override to bind Enhanced Input
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	// Enhanced input callbacks
+	void Move(const FInputActionValue& Value);
+	void Equip(const FInputActionValue& Value);
+	void Attack(const FInputActionValue& Value);
 };
