@@ -3,9 +3,18 @@
 #include "ABasePlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "GameFramework/PlayerController.h"
-#include "Engine/LocalPlayer.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "InputActionValue.h"
+#include "Characters/InteractionComponent.h" 
+#include "Characters/PickableWeapon.h"
+#include "Components/SkeletalMeshComponent.h"
 
+AABasePlayerCharacter::AABasePlayerCharacter()
+{
+	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
+
+}
 void AABasePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -23,12 +32,9 @@ void AABasePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		}
 		if (EquipAction)
 		{
-			EIC->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Equip);
+			EIC->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Interact);
 		}
-		if (AttackAction)
-		{
-			EIC->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Attack);
-		}
+
 	}
 
 	// Register mapping context on the local player's Enhanced Input Subsystem
@@ -81,16 +87,38 @@ void AABasePlayerCharacter::Look(const FInputActionValue& Value)
 	// Negujemy Y, by odwróciæ ruch góra/dó³
 	AddControllerPitchInput(-Look.Y);
 }
-
-void AABasePlayerCharacter::Equip(const FInputActionValue& Value)
+void AABasePlayerCharacter::Interact()
 {
-	UE_LOG(LogTemp, Verbose, TEXT("Equip action triggered"));
-	// Tutaj wstaw logikê equip/interaction
+	if (InteractionComponent)
+	{
+		InteractionComponent->TryInteract(this);
+	}
 }
 
-void AABasePlayerCharacter::Attack(const FInputActionValue& Value)
+void AABasePlayerCharacter::Equip(APickableWeapon* Weapon)
 {
-	UE_LOG(LogTemp, Verbose, TEXT("Attack action triggered"));
-	// Tutaj wstaw logikê ataku
+	if (!Weapon) return;
+
+	CurrentWeapon = Weapon;
+
+	FName SocketName = TEXT("WeaponSocket");
+
+	if (USceneComponent* Grip = Weapon->GetGripPoint())
+	{
+		Grip->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	}
+	else
+	{
+		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	}
+
+	if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Weapon->GetRootComponent()))
+	{
+		PrimComp->SetSimulatePhysics(false);
+		PrimComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
 }
+
+
 

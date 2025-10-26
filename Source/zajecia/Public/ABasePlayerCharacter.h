@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "ABaseCharacter.h"
+#include "Characters/InteractionComponent.h"
 #include "InputMappingContext.h"
-#include "InputAction.h"
-#include "InputActionValue.h"
+#include "Characters/PickableWeapon.h"
 #include "ABasePlayerCharacter.generated.h"
 
 /**
- * 
+ *
  */
 class UInputMappingContext;
 class UInputAction;
@@ -19,30 +19,34 @@ class UInputAction;
 UCLASS()
 class ZAJECIA_API AABasePlayerCharacter : public AABaseCharacter
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
+public:
+	AABasePlayerCharacter();
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
-	UInputMappingContext* MappingContext;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+    UInputMappingContext* MappingContext;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+    UInputAction* MoveAction;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+    UInputAction* EquipAction;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+    UInputAction* AttackAction;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+    UInputAction* LookAction;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
+    UInteractionComponent* InteractionComponent;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    APickableWeapon* CurrentWeapon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
-	UInputAction* MoveAction;
+    // Override to bind Enhanced Input
+    virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	// Dodane: akcja Look (Axis2D: X = yaw, Y = pitch)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
-	UInputAction* LookAction;
+    // Enhanced input callbacks
+    void Move(const FInputActionValue& Value);
+    void Look(const FInputActionValue& Value);
+    virtual void Equip(APickableWeapon* Weapon);
+    void Interact();
+    
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
-	UInputAction* EquipAction;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
-	UInputAction* AttackAction;
-
-	// Override to bind Enhanced Input
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
-	// Enhanced input callbacks
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void Equip(const FInputActionValue& Value);
-	void Attack(const FInputActionValue& Value);
 };

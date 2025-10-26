@@ -14,4 +14,13 @@ class ZAJECIA_API APickableWeapon : public ABaseInteractionActor
 {
 	GENERATED_BODY()
 	
+public:
+    APickableWeapon();
+
+    virtual void PickUp(AActor* Interactor) override;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    USceneComponent* GripPoint;
+
+    USceneComponent* GetGripPoint() const { return GripPoint; }
 };
