@@ -24,8 +24,14 @@ class ZAJECIA_API AABasePlayerCharacter : public AABaseCharacter
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
 	UInputMappingContext* MappingContext;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
 	UInputAction* MoveAction;
+
+	// Dodane: akcja Look (Axis2D: X = yaw, Y = pitch)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+	UInputAction* LookAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
 	UInputAction* EquipAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
@@ -36,6 +42,7 @@ public:
 
 	// Enhanced input callbacks
 	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
 	void Equip(const FInputActionValue& Value);
 	void Attack(const FInputActionValue& Value);
 };

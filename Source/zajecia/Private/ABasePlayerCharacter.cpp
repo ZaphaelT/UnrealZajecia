@@ -17,6 +17,10 @@ void AABasePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		{
 			EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Move);
 		}
+		if (LookAction)
+		{
+			EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Look);
+		}
 		if (EquipAction)
 		{
 			EIC->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Equip);
@@ -64,6 +68,18 @@ void AABasePlayerCharacter::Move(const FInputActionValue& Value)
 	{
 		AddMovementInput(MoveDir.GetSafeNormal(), Strength);
 	}
+}
+
+void AABasePlayerCharacter::Look(const FInputActionValue& Value)
+{
+	// Odczyt Axis2D: X = yaw (poziom), Y = pitch (pion). Odwróæ Y jeœli trzeba.
+	const FVector2D Look = Value.Get<FVector2D>();
+	if (!Controller) return;
+
+	// Dodaje rotacjê kontrolera/pawna
+	AddControllerYawInput(Look.X);
+	// Negujemy Y, by odwróciæ ruch góra/dó³
+	AddControllerPitchInput(-Look.Y);
 }
 
 void AABasePlayerCharacter::Equip(const FInputActionValue& Value)
