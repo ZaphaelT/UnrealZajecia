@@ -38,6 +38,9 @@ public:
     UInteractionComponent* InteractionComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     APickableWeapon* CurrentWeapon;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+    UAnimMontage* AttackMontage;
+    void Attack(const FInputActionValue& Value);
 
     // Override to bind Enhanced Input
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

@@ -34,6 +34,10 @@ void AABasePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		{
 			EIC->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Interact);
 		}
+		if (AttackAction)
+		{
+			EIC->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Attack);
+		}
 
 	}
 
@@ -118,6 +122,14 @@ void AABasePlayerCharacter::Equip(APickableWeapon* Weapon)
 		PrimComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 
+}
+void AABasePlayerCharacter::Attack(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Attack triggered!"));
+	if (AttackMontage)
+	{
+		PlayAnimMontage(AttackMontage);
+	}
 }
 
 
