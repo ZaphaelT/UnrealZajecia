@@ -6,7 +6,7 @@
 #include "PickableWeapon.generated.h"
 
 class UBoxComponent;
-class UStaticMeshComponent; // <-- DODAJ TO
+class UStaticMeshComponent;
 
 UCLASS()
 class ZAJECIA_API APickableWeapon : public ABaseInteractionActor
@@ -16,11 +16,9 @@ class ZAJECIA_API APickableWeapon : public ABaseInteractionActor
 public:
     APickableWeapon();
 
-    // TO JEST NOWY G£ÓWNY KOMPONENT
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UStaticMeshComponent* WeaponMesh;
 
-    // Punkt 4: Komponent kolizji (box collision)
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
     UBoxComponent* HitboxComponent;
 

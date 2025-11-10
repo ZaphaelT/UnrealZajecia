@@ -2,7 +2,7 @@
 
 
 #include "AnimNotify/EndTraceNotify.h"
-#include "ABasePlayerCharacter.h" // Za³¹cz plik .h swojej postaci
+#include "ABasePlayerCharacter.h" 
 
 void UEndTraceNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -13,7 +13,6 @@ void UEndTraceNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase
     {
         if (AABasePlayerCharacter* Character = Cast<AABasePlayerCharacter>(Owner))
         {
-            // Wywo³ujemy drug¹ funkcjê C++ na naszej postaci
             Character->EndWeaponTrace();
         }
     }
