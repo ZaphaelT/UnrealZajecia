@@ -16,6 +16,7 @@
 #include "Engine/EngineTypes.h"
 #include "Math/Quat.h"
 #include "Math/Color.h"
+#include "CombatInterface.h" // --- NOWOŒÆ (KROK 0) ---
 
 AABasePlayerCharacter::AABasePlayerCharacter()
 {
@@ -204,6 +205,19 @@ void AABasePlayerCharacter::PerformAttackTrace()
 
 			UE_LOG(LogTemp, Warning, TEXT("Trafiono %s w miejscu: %s"), *HitActor->GetName(), *HitLocation.ToString());
 
+			// --- NOWOŒÆ (KROK 0 / ZADANIE 3) ---
+			// SprawdŸ, czy trafiony aktor implementuje nasz interfejs
+			if (HitActor->Implements<UCombatInterface>())
+			{
+				// Wywo³aj funkcjê GetHit() na trafionym obiekcie
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(HitActor);
+				if (CombatInterface)
+				{
+					// Przekazujemy HitResult, aby wróg wiedzia³, sk¹d zosta³ trafiony
+					CombatInterface->GetHit(HitResult);
+				}
+			}
+			// --- KONIEC NOWOŒCI ---
 		}
 	}
 }
