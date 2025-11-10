@@ -9,19 +9,19 @@
 #include "Characters/PickableWeapon.h"
 #include "ABasePlayerCharacter.generated.h"
 
-/**
- *
- */
 class UInputMappingContext;
 class UInputAction;
-
 
 UCLASS()
 class ZAJECIA_API AABasePlayerCharacter : public AABaseCharacter
 {
     GENERATED_BODY()
 public:
-	AABasePlayerCharacter();
+    AABasePlayerCharacter();
+
+    // Funkcje wywo³ywane przez AnimNotify (Punkt 3)
+    void StartWeaponTrace();
+    void EndWeaponTrace();
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -36,20 +36,37 @@ public:
     UInputAction* LookAction;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
     UInteractionComponent* InteractionComponent;
+
+    // Zmieni³em na wskaŸnik do Twojej klasy bazowej broni
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     APickableWeapon* CurrentWeapon;
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
     UAnimMontage* AttackMontage;
+
     void Attack(const FInputActionValue& Value);
 
     // Override to bind Enhanced Input
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+    // Funkcja Tick bêdzie nam potrzebna do œledzenia co klatkê (Punkt 5)
+    virtual void Tick(float DeltaTime) override;
 
     // Enhanced input callbacks
     void Move(const FInputActionValue& Value);
     void Look(const FInputActionValue& Value);
     virtual void Equip(APickableWeapon* Weapon);
     void Interact();
-    
 
+protected:
+    // Funkcja wykonuj¹ca logikê BoxTrace (Punkt 5)
+    void PerformAttackTrace();
+
+private:
+    // Flaga stanu ataku
+    bool bIsAttacking;
+
+    // Tablica na trafionych aktorów (aby nie trafiaæ wielokrotnie)
+    UPROPERTY()
+    TArray<AActor*> HitActors;
 };
