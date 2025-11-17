@@ -17,7 +17,7 @@
 #include "Engine/EngineTypes.h"
 #include "Math/Quat.h"
 #include "Math/Color.h"
-#include "CombatInterface.h" // --- NOWOŒÆ (KROK 0) ---
+#include "CombatInterface.h"
 
 AABasePlayerCharacter::AABasePlayerCharacter()
 {
@@ -57,9 +57,10 @@ void AABasePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		}
 		if (AttackAction)
 		{
+			// Zmieniono Triggered na Started, aby unikn¹æ ci¹g³ego wywo³ywania przy przytrzymaniu,
+			// ale nasza logika w funkcji Attack i tak przed tym zabezpiecza.
 			EIC->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Attack);
 		}
-
 	}
 
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
@@ -138,14 +139,27 @@ void AABasePlayerCharacter::Equip(APickableWeapon* Weapon)
 	}
 }
 
+// --- TUTAJ JEST ZMIANA (LOGIKA ANTY-SPAM) ---
 void AABasePlayerCharacter::Attack(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Attack triggered!"));
 	if (AttackMontage)
 	{
+		// Pobieramy instancjê animacji z naszego mesha
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+		// Sprawdzamy, czy instancja istnieje I CZY nasz monta¿ ataku ju¿ jest odtwarzany
+		if (AnimInstance && AnimInstance->Montage_IsPlaying(AttackMontage))
+		{
+			// Jeœli monta¿ ju¿ leci -> przerywamy funkcjê, nie pozwalamy zaatakowaæ ponownie
+			return;
+		}
+
+		// Jeœli nie leci -> odpalamy atak
+		UE_LOG(LogTemp, Warning, TEXT("Attack triggered!"));
 		PlayAnimMontage(AttackMontage);
 	}
 }
+// --------------------------------------------
 
 void AABasePlayerCharacter::StartWeaponTrace()
 {
@@ -187,11 +201,11 @@ void AABasePlayerCharacter::PerformAttackTrace()
 		UEngineTypes::ConvertToTraceType(ECC_Visibility),
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration, // RYSOWANIE DEBUGOWEGO BOXA!
+		EDrawDebugTrace::ForDuration,
 		HitResult,
 		true,
-		FLinearColor::Red,     // Kolor gdy nie trafia
-		FLinearColor::Green,   // Kolor gdy trafia
+		FLinearColor::Red,
+		FLinearColor::Green,
 		0.1f
 	);
 
@@ -206,19 +220,14 @@ void AABasePlayerCharacter::PerformAttackTrace()
 
 			UE_LOG(LogTemp, Warning, TEXT("Trafiono %s w miejscu: %s"), *HitActor->GetName(), *HitLocation.ToString());
 
-			// --- NOWOŒÆ (KROK 0 / ZADANIE 3) ---
-			// SprawdŸ, czy trafiony aktor implementuje nasz interfejs
 			if (HitActor->Implements<UCombatInterface>())
 			{
-				// Wywo³aj funkcjê GetHit() na trafionym obiekcie
 				ICombatInterface* CombatInterface = Cast<ICombatInterface>(HitActor);
 				if (CombatInterface)
 				{
-					// Przekazujemy HitResult, aby wróg wiedzia³, sk¹d zosta³ trafiony
 					CombatInterface->GetHit(HitResult);
 				}
 			}
-			// --- KONIEC NOWOŒCI ---
 		}
 	}
 }
