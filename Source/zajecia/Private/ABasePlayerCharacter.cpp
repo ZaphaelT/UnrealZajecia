@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ABasePlayerCharacter.h"
+#include "AttributeComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Controller.h"
@@ -10,7 +11,6 @@
 #include "Characters/PickableWeapon.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "InputMappingContext.h"
-
 #include "Components/BoxComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/HitResult.h"
@@ -18,13 +18,52 @@
 #include "Math/Quat.h"
 #include "Math/Color.h"
 #include "CombatInterface.h"
+#include "HUD/MainHUD.h" // <-- ZMIANA: Poprawna œcie¿ka do Twojego pliku
 
 AABasePlayerCharacter::AABasePlayerCharacter()
 {
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
+	AttributeComponent = CreateDefaultSubobject<UAttributeComponent>(TEXT("AttributeComponent"));
 
 	PrimaryActorTick.bCanEverTick = true;
 	bIsAttacking = false;
+	CurrentPawnState = EPawnState::EPS_Idle;
+}
+
+void AABasePlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 1. Sprawdzamy czy to gracz lokalny i czy klasa HUD jest ustawiona
+	if (IsLocallyControlled() && MainHUDClass)
+	{
+		// 2. RZUTOWANIE (CAST) - TO JEST KLUCZOWA POPRAWKA
+		// Musimy zamieniæ ogólny 'Controller' na specyficzny 'PlayerController'
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			// 3. Teraz przekazujemy 'PC' zamiast 'GetController()'
+			MainHUD = CreateWidget<UMainHUD>(PC, MainHUDClass);
+
+			if (MainHUD)
+			{
+				MainHUD->AddToViewport();
+
+				// Inicjalizacja pasków
+				if (AttributeComponent)
+				{
+					MainHUD->UpdateHealth(AttributeComponent->GetHealth(), AttributeComponent->GetMaxHealth());
+					MainHUD->UpdateStamina(AttributeComponent->GetStamina(), AttributeComponent->GetMaxStamina());
+				}
+			}
+		}
+	}
+
+	// Podpiêcie delegatów
+	if (AttributeComponent)
+	{
+		AttributeComponent->OnHealthChanged.AddDynamic(this, &AABasePlayerCharacter::OnHealthChanged);
+		AttributeComponent->OnStaminaChanged.AddDynamic(this, &AABasePlayerCharacter::OnStaminaChanged);
+	}
 }
 
 void AABasePlayerCharacter::Tick(float DeltaTime)
@@ -78,6 +117,8 @@ void AABasePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
 void AABasePlayerCharacter::Move(const FInputActionValue& Value)
 {
+	if (CurrentPawnState == EPawnState::EPS_Dead) return;
+
 	FVector2D MoveVector = Value.Get<FVector2D>();
 
 	if (!Controller) return;
@@ -139,14 +180,31 @@ void AABasePlayerCharacter::Equip(APickableWeapon* Weapon)
 
 void AABasePlayerCharacter::Attack(const FInputActionValue& Value)
 {
+	if (CurrentPawnState == EPawnState::EPS_Dead || CurrentPawnState == EPawnState::EPS_Hit) return;
+
 	if (AttackMontage)
 	{
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
 		if (AnimInstance && AnimInstance->Montage_IsPlaying(AttackMontage))
 		{
 			return;
 		}
 
+		if (AttributeComponent)
+		{
+			float AttackCost = AttributeComponent->StaminaCosts.StaminaCost_Attack;
+
+			if (!AttributeComponent->CanPayStaminaCost(AttackCost))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Brak staminy na atak!"));
+				return;
+			}
+
+			AttributeComponent->PayStamina(AttackCost);
+		}
+
+		SetPawnState(EPawnState::EPS_InCombat);
 		UE_LOG(LogTemp, Warning, TEXT("Attack triggered!"));
 		PlayAnimMontage(AttackMontage);
 	}
@@ -161,6 +219,7 @@ void AABasePlayerCharacter::StartWeaponTrace()
 void AABasePlayerCharacter::EndWeaponTrace()
 {
 	bIsAttacking = false;
+	SetPawnState(EPawnState::EPS_Idle);
 }
 
 void AABasePlayerCharacter::PerformAttackTrace()
@@ -219,6 +278,46 @@ void AABasePlayerCharacter::PerformAttackTrace()
 					CombatInterface->GetHit(HitResult);
 				}
 			}
+		}
+	}
+}
+
+void AABasePlayerCharacter::OnHealthChanged(float Current, float Max)
+{
+	if (MainHUD)
+	{
+		MainHUD->UpdateHealth(Current, Max);
+	}
+
+	if (Current <= 0.0f)
+	{
+		SetPawnState(EPawnState::EPS_Dead);
+
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+		if (Controller) Controller->UnPossess();
+	}
+}
+
+void AABasePlayerCharacter::OnStaminaChanged(float Current, float Max)
+{
+	if (MainHUD)
+	{
+		MainHUD->UpdateStamina(Current, Max);
+	}
+}
+
+void AABasePlayerCharacter::SetPawnState(EPawnState NewState)
+{
+	CurrentPawnState = NewState;
+
+	if (MainHUD)
+	{
+		// NOWA METODA (bez ostrze¿eñ):
+		const UEnum* EnumPtr = StaticEnum<EPawnState>();
+		if (EnumPtr)
+		{
+			MainHUD->UpdateStateText(EnumPtr->GetNameStringByValue((int64)CurrentPawnState));
 		}
 	}
 }

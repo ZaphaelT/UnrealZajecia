@@ -4,62 +4,93 @@
 
 #include "CoreMinimal.h"
 #include "ABaseCharacter.h"
+#include "EnumStates/PawnStates.h"     
+// Nie musimy tu includowaæ "HUD/MainHUD.h", wystarczy forward declaration poni¿ej
 #include "ABasePlayerCharacter.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
 class UInteractionComponent;
+class UAttributeComponent;
 class UAnimMontage;
 class APickableWeapon;
+class UMainHUD; // <-- ZMIANA: U¿ywamy Twojej nazwy klasy
 struct FInputActionValue;
 
 UCLASS()
 class ZAJECIA_API AABasePlayerCharacter : public AABaseCharacter
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 public:
-    AABasePlayerCharacter();
+	AABasePlayerCharacter();
 
-    void StartWeaponTrace();
-    void EndWeaponTrace();
+	void StartWeaponTrace();
+	void EndWeaponTrace();
 
 public:
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-    UInputMappingContext* MappingContext;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
-    UInputAction* MoveAction;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
-    UInputAction* EquipAction;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
-    UInputAction* AttackAction;
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-    UInputAction* LookAction;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
-    UInteractionComponent* InteractionComponent;
+	// --- INPUT ---
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputMappingContext* MappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+	UInputAction* MoveAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+	UInputAction* EquipAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+	UInputAction* AttackAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputAction* LookAction;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    APickableWeapon* CurrentWeapon;
+	// --- COMPONENTS ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
+	UInteractionComponent* InteractionComponent;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
-    UAnimMontage* AttackMontage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes")
+	UAttributeComponent* AttributeComponent;
 
-    void Attack(const FInputActionValue& Value);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	APickableWeapon* CurrentWeapon;
 
-    virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	// --- COMBAT & ANIMATION ---
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+	UAnimMontage* AttackMontage;
 
-    virtual void Tick(float DeltaTime) override;
+	void Attack(const FInputActionValue& Value);
 
-    void Move(const FInputActionValue& Value);
-    void Look(const FInputActionValue& Value);
-    virtual void Equip(APickableWeapon* Weapon);
-    void Interact();
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
+
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	virtual void Equip(APickableWeapon* Weapon);
+	void Interact();
 
 protected:
-    void PerformAttackTrace();
+	void PerformAttackTrace();
+
+	// --- UI & STATES ---
+
+	// ZMIANA: U¿ywamy UMainHUD zamiast UMainUserWidget
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UMainHUD> MainHUDClass;
+
+	UPROPERTY()
+	UMainHUD* MainHUD;
+
+	UFUNCTION()
+	void OnHealthChanged(float Current, float Max);
+
+	UFUNCTION()
+	void OnStaminaChanged(float Current, float Max);
+
+	void SetPawnState(EPawnState NewState);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	EPawnState CurrentPawnState;
 
 private:
-    bool bIsAttacking;
+	bool bIsAttacking;
 
-    UPROPERTY()
-    TArray<AActor*> HitActors;
+	UPROPERTY()
+	TArray<AActor*> HitActors;
 };
