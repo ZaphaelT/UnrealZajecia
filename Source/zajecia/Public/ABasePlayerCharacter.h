@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "ABaseCharacter.h"
-#include "Characters/InteractionComponent.h"
-#include "InputMappingContext.h"
-#include "Characters/PickableWeapon.h"
 #include "ABasePlayerCharacter.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
+class UInteractionComponent;
+class UAnimMontage;
+class APickableWeapon;
+struct FInputActionValue;
 
 UCLASS()
 class ZAJECIA_API AABasePlayerCharacter : public AABaseCharacter

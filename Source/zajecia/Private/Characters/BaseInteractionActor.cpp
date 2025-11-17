@@ -11,20 +11,6 @@ ABaseInteractionActor::ABaseInteractionActor()
 
 }
 
-// Called when the game starts or when spawned
-void ABaseInteractionActor::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void ABaseInteractionActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void ABaseInteractionActor::Interact(AActor* Interactor)
 {
 	PickUp(Interactor);

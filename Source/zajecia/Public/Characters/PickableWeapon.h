@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 #include "Characters/BaseInteractionActor.h" 
 #include "PickableWeapon.generated.h"
 

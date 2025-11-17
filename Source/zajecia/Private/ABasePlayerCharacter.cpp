@@ -9,6 +9,7 @@
 #include "Characters/InteractionComponent.h"
 #include "Characters/PickableWeapon.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "InputMappingContext.h"
 
 #include "Components/BoxComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
