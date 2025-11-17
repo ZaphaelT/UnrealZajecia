@@ -57,8 +57,6 @@ void AABasePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		}
 		if (AttackAction)
 		{
-			// Zmieniono Triggered na Started, aby unikn¹æ ci¹g³ego wywo³ywania przy przytrzymaniu,
-			// ale nasza logika w funkcji Attack i tak przed tym zabezpiecza.
 			EIC->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AABasePlayerCharacter::Attack);
 		}
 	}
@@ -139,27 +137,20 @@ void AABasePlayerCharacter::Equip(APickableWeapon* Weapon)
 	}
 }
 
-// --- TUTAJ JEST ZMIANA (LOGIKA ANTY-SPAM) ---
 void AABasePlayerCharacter::Attack(const FInputActionValue& Value)
 {
 	if (AttackMontage)
 	{
-		// Pobieramy instancjê animacji z naszego mesha
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-		// Sprawdzamy, czy instancja istnieje I CZY nasz monta¿ ataku ju¿ jest odtwarzany
 		if (AnimInstance && AnimInstance->Montage_IsPlaying(AttackMontage))
 		{
-			// Jeœli monta¿ ju¿ leci -> przerywamy funkcjê, nie pozwalamy zaatakowaæ ponownie
 			return;
 		}
 
-		// Jeœli nie leci -> odpalamy atak
 		UE_LOG(LogTemp, Warning, TEXT("Attack triggered!"));
 		PlayAnimMontage(AttackMontage);
 	}
 }
-// --------------------------------------------
 
 void AABasePlayerCharacter::StartWeaponTrace()
 {

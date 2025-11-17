@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 
-// UENUM pozwala u¿ywaæ tego enuma w Blueprintach
 UENUM(BlueprintType)
 enum class EPawnState : uint8
 {
