@@ -18,7 +18,7 @@
 #include "Math/Quat.h"
 #include "Math/Color.h"
 #include "CombatInterface.h"
-#include "HUD/MainHUD.h" // <-- ZMIANA: Poprawna œcie¿ka do Twojego pliku
+#include "HUD/MainHUD.h"
 
 AABasePlayerCharacter::AABasePlayerCharacter()
 {
@@ -33,22 +33,15 @@ AABasePlayerCharacter::AABasePlayerCharacter()
 void AABasePlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// 1. Sprawdzamy czy to gracz lokalny i czy klasa HUD jest ustawiona
 	if (IsLocallyControlled() && MainHUDClass)
 	{
-		// 2. RZUTOWANIE (CAST) - TO JEST KLUCZOWA POPRAWKA
-		// Musimy zamieniæ ogólny 'Controller' na specyficzny 'PlayerController'
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
-			// 3. Teraz przekazujemy 'PC' zamiast 'GetController()'
 			MainHUD = CreateWidget<UMainHUD>(PC, MainHUDClass);
 
 			if (MainHUD)
 			{
 				MainHUD->AddToViewport();
-
-				// Inicjalizacja pasków
 				if (AttributeComponent)
 				{
 					MainHUD->UpdateHealth(AttributeComponent->GetHealth(), AttributeComponent->GetMaxHealth());
@@ -57,8 +50,6 @@ void AABasePlayerCharacter::BeginPlay()
 			}
 		}
 	}
-
-	// Podpiêcie delegatów
 	if (AttributeComponent)
 	{
 		AttributeComponent->OnHealthChanged.AddDynamic(this, &AABasePlayerCharacter::OnHealthChanged);

@@ -1,17 +1,19 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "Characters/PickableWeapon.h"
 #include "ABaseEnemyCharacter.h"
 #include "AttributeComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
+
 
 AABaseEnemyCharacter::AABaseEnemyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	AttributeComponent = CreateDefaultSubobject<UAttributeComponent>(TEXT("AttributeComponent"));
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
-	PawnSensingComp->SightRadius = 1500.0f; // Widzi na 15 metrów
-	PawnSensingComp->SetPeripheralVisionAngle(60.0f); // K¹t widzenia
+	PawnSensingComp->SightRadius = 3000.0f; // Widzi na 15 metrów
+	PawnSensingComp->SetPeripheralVisionAngle(90.0f); // K¹t widzenia
 
 	PawnState = EPawnState::EPS_Idle;
 }
@@ -27,6 +29,20 @@ void AABaseEnemyCharacter::BeginPlay()
 	if (PawnSensingComp)
 	{
 		PawnSensingComp->OnSeePawn.AddDynamic(this, &AABaseEnemyCharacter::OnSeePawn);
+	}
+	if (DefaultWeaponClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+		APickableWeapon* SpawnedWeapon = GetWorld()->SpawnActor<APickableWeapon>(DefaultWeaponClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+
+		if (SpawnedWeapon)
+		{
+			EquippedWeapon = SpawnedWeapon;
+			EquippedWeapon->GetRootComponent()->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
+			EquippedWeapon->SetActorEnableCollision(false);
+		}
 	}
 }
 

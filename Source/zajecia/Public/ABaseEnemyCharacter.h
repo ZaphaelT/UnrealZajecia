@@ -10,6 +10,7 @@
 #include "ABaseEnemyCharacter.generated.h"
 
 class UAttributeComponent;
+class APickableWeapon;
 
 UCLASS()
 class ZAJECIA_API AABaseEnemyCharacter : public AABaseCharacter, public ICombatInterface
@@ -49,6 +50,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float AttackRange = 150.0f;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Combat")
+	APickableWeapon* EquippedWeapon;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<APickableWeapon> DefaultWeaponClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	FName WeaponSocketName = TEXT("WeaponSocket");
 
 	UFUNCTION()
 	void Die();

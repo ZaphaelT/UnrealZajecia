@@ -67,10 +67,6 @@ public:
 
 protected:
 	void PerformAttackTrace();
-
-	// --- UI & STATES ---
-
-	// ZMIANA: U¿ywamy UMainHUD zamiast UMainUserWidget
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UMainHUD> MainHUDClass;
 
