@@ -5,8 +5,7 @@
 #include "CoreMinimal.h"
 #include "ABaseCharacter.h"
 #include "CombatInterface.h"
-#include "EnumStates/PawnStates.h"
-#include "Perception/PawnSensingComponent.h"
+#include "EnumStates/PawnStates.h" // Upewnij siê, ¿e œcie¿ka jest poprawna
 #include "ABaseEnemyCharacter.generated.h"
 
 class UAttributeComponent;
@@ -20,9 +19,14 @@ class ZAJECIA_API AABaseEnemyCharacter : public AABaseCharacter, public ICombatI
 public:
 	AABaseEnemyCharacter();
 
+	// Tick nie jest ju¿ potrzebny do AI, ale zostawiamy pusty w CPP na wszelki wypadek
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void GetHit(const FHitResult& HitResult) override;
+
+	// Funkcja pomocnicza, ¿eby Task z Behavior Tree wiedzia³, czy wróg atakuje
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	bool IsAttacking() const { return PawnState == EPawnState::EPS_Occupied; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -30,8 +34,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UAttributeComponent* AttributeComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UPawnSensingComponent* PawnSensingComp;
+	// USUNIÊTO: PawnSensing (teraz AIController u¿ywa AIPerception)
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* HitReactMontage;
@@ -45,10 +48,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
 	EPawnState PawnState;
 
+	// CombatTarget jest teraz trzymany w Blackboardzie, ale zostawiamy tu jako pomocnicze
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	AActor* CombatTarget;
 
-	UPROPERTY(EditAnywhere, Category = "AI")
+	// Zasiêg ataku zostawiamy, przyda siê w Decoratorach BT
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
 	float AttackRange = 150.0f;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Combat")
@@ -63,12 +68,14 @@ protected:
 	UFUNCTION()
 	void Die();
 
-	UFUNCTION()
-	void OnSeePawn(APawn* Pawn);
+	// USUNIÊTO: OnSeePawn (teraz AIController to obs³uguje)
 
+public:
+	// Ta funkcja ZOSTAJE - Behavior Tree bêdzie j¹ wywo³ywaæ przez Task
 	UFUNCTION(BlueprintCallable, Category = "AI")
-	void PerformAttack(); // Wykonanie ataku
+	void PerformAttack();
 
+protected:
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 };
