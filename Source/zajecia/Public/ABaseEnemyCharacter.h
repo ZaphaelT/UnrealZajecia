@@ -66,7 +66,8 @@ protected:
 	UFUNCTION()
 	void OnSeePawn(APawn* Pawn);
 
-	void PerformAttack();
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void PerformAttack(); // Wykonanie ataku
 
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
