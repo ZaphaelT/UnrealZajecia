@@ -9,7 +9,7 @@
 #include "MainHUD.generated.h"
 
 /**
- * Klasa HUD obs³uguj¹ca pasek ¿ycia i staminy
+ * Klasa HUD obs³uguj¹ca pasek ¿ycia i staminy oraz wroga
  */
 UCLASS()
 class ZAJECIA_API UMainHUD : public UUserWidget
@@ -27,8 +27,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void UpdateStateText(FString StateName);
 
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void UpdateEnemyHealth(float Current, float Max);
+
 protected:
-	// Wa¿ne: Nazwy zmiennych musz¹ byæ TAKIE SAME jak nazwy elementów w Widget Blueprint
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* HealthBar;
 
@@ -37,4 +39,11 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* StateText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* EnemyHealthBar;
+
+private:
+	FTimerHandle TimerHandle_HideEnemyHealth;
+	void HideEnemyHealth();
 };

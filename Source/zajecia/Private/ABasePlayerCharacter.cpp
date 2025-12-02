@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
 #include "Characters/InteractionComponent.h"
@@ -33,6 +34,8 @@ AABasePlayerCharacter::AABasePlayerCharacter()
 void AABasePlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Tworzenie HUD
 	if (IsLocallyControlled() && MainHUDClass)
 	{
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
@@ -42,6 +45,7 @@ void AABasePlayerCharacter::BeginPlay()
 			if (MainHUD)
 			{
 				MainHUD->AddToViewport();
+
 				if (AttributeComponent)
 				{
 					MainHUD->UpdateHealth(AttributeComponent->GetHealth(), AttributeComponent->GetMaxHealth());
@@ -50,6 +54,7 @@ void AABasePlayerCharacter::BeginPlay()
 			}
 		}
 	}
+
 	if (AttributeComponent)
 	{
 		AttributeComponent->OnHealthChanged.AddDynamic(this, &AABasePlayerCharacter::OnHealthChanged);
@@ -184,6 +189,7 @@ void AABasePlayerCharacter::Attack(const FInputActionValue& Value)
 
 		if (AttributeComponent)
 		{
+			// U¿ywamy StaminaCost_Attack zgodnie ze struktur¹
 			float AttackCost = AttributeComponent->StaminaCosts.StaminaCost_Attack;
 
 			if (!AttributeComponent->CanPayStaminaCost(AttackCost))
@@ -213,6 +219,7 @@ void AABasePlayerCharacter::EndWeaponTrace()
 	SetPawnState(EPawnState::EPS_Idle);
 }
 
+// --- ZMODYFIKOWANA FUNKCJA TRACE ---
 void AABasePlayerCharacter::PerformAttackTrace()
 {
 	if (!CurrentWeapon || !CurrentWeapon->GetHitbox())
@@ -260,13 +267,21 @@ void AABasePlayerCharacter::PerformAttackTrace()
 			AActor* HitActor = HitResult.GetActor();
 
 			UE_LOG(LogTemp, Warning, TEXT("Trafiono %s w miejscu: %s"), *HitActor->GetName(), *HitLocation.ToString());
-
 			if (HitActor->Implements<UCombatInterface>())
 			{
 				ICombatInterface* CombatInterface = Cast<ICombatInterface>(HitActor);
 				if (CombatInterface)
 				{
 					CombatInterface->GetHit(HitResult);
+				}
+			}
+			if (MainHUD)
+			{
+				UAttributeComponent* EnemyAttributes = HitActor->FindComponentByClass<UAttributeComponent>();
+
+				if (EnemyAttributes)
+				{
+					MainHUD->UpdateEnemyHealth(EnemyAttributes->GetHealth(), EnemyAttributes->GetMaxHealth());
 				}
 			}
 		}
@@ -304,7 +319,6 @@ void AABasePlayerCharacter::SetPawnState(EPawnState NewState)
 
 	if (MainHUD)
 	{
-		// NOWA METODA (bez ostrze¿eñ):
 		const UEnum* EnumPtr = StaticEnum<EPawnState>();
 		if (EnumPtr)
 		{
